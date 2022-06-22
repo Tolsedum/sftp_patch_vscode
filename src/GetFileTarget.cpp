@@ -1,6 +1,78 @@
 #include "GetFileTarget.hpp"
 
+GetFileTarget::GetFileTarget(){
+    tmp_file_name = "tmp_file.tmp";
+    
+    use_plagin = {
+        "natizyskunk.sftp",
+        "liximomo.sftp",
+        "doujinya.sftp-revived"
+    };
+    search_begin = {
+        "function d(e){return Object.assign({},h,e)}", // for natizyskunk.sftp
+        "function p(e){return Object.assign({},h,e)}", // for liximomo.sftp
+        "function d(e){return Object.assign({},h,e)}"  // for doujinya.sftp-revived
+    };
+    
+    #ifdef WIN32
+        file_is_not_found = L"Файл не найден";
+        file_is_not_open = L"Файл не может быть открыт";
+        out_of_range = L"Число не должно быть больше 3 и меньше 1";
+        invalid_argument = L"Введите число: ";
+        ask_user_a_plagin = L"\
+Каким плагином вы пользуетесь: \n \
+1) natizyskunk.sftp \n \
+2) liximomo.sftp \n \
+3) doujinya.sftp-revived \n\
+Введите номер: ";
+        name_file_target = "\\\\dist\\\\extension.js";
+        profile_patch = ".vscode\\\\extensions";
+    #else
+        file_is_not_found = "Файл не найден";
+        file_is_not_open = "Файл не может быть открыт";
+        out_of_range = "Число не должно быть больше 3 и меньше 1";
+        invalid_argument = "Введите число: ";
+        ask_user_a_plagin = "\
+Каким плагином вы пользуетесь: \n \
+1) natizyskunk.sftp \n \
+2) liximomo.sftp \n \
+3) doujinya.sftp-revived \n \
+Введите номер: ";
+        name_file_target = "/dist/extension.js";
+        profile_patch = ".vscode/extensions";
+    #endif // WIN32
+    
 
+}
+
+void GetFileTarget::getIntCin(){
+    fn::printString(ask_user_a_plagin);
+    STR_TYPE tmp_str;
+    bool iter = true;
+    while (iter){
+        try{
+            fn::getLineCin(tmp_str);
+            selected_number = std::stoi(tmp_str);
+            if(selected_number == 1){
+                selected_number = 0;
+                iter = false;
+            }else if(selected_number == 2){
+                selected_number = 1;
+                iter = false;
+            }else if(selected_number == 3){
+                selected_number = 2;
+                iter = false;
+            }else{
+                fn::printString(out_of_range);
+            }
+        }catch(const std::invalid_argument &e){
+            fn::printString(invalid_argument);
+        }catch(const std::out_of_range &e){ 
+            fn::printString(out_of_range);
+        }
+    }
+    
+}
 
 void GetFileTarget::jumpToDirectory(){
     #ifdef WIN32
@@ -24,63 +96,63 @@ void GetFileTarget::jumpToDirectory(){
                 throw L"Remove tmp_file file failed";
             }
         }else{
-            throw "Tmp file is not excist";
+            throw L"Tmp file is not excist";
         }
         _wchdir(fn::stringToWstring(current_patch).c_str());
     #else
-        chdir("~/");
+        chdir(getenv("HOME"));
     #endif // WIN32
 }
 
-FileDate GetFileTarget::getFilePosition(){
+GenerelInformation GetFileTarget::getFilePosition(){
+    getIntCin();
     std::ifstream file_point;
-    FileDate fileDate;
-    fileDate.tmp_file_name = tmp_file_name;
-    std::string dir_target = "\\\\dist\\\\extension.js";
-    std::string profile_patch = ".vscode\\\\extensions";
-    
-    for (auto const& p : fs::directory_iterator(profile_patch)){
-        std::size_t pos = p.path().string().find("natizyskunk.sftp");
-        
-        std::cout<< p.path().string()<< std::endl;
+    GenerelInformation info;
+    info.tmp_file_name = tmp_file_name;
 
+    bool file_finde = false;
+    for (auto const& p : fs::directory_iterator(profile_patch)){
+        std::size_t pos = p.path().string().find(use_plagin[selected_number]);// "natizyskunk.sftp"
         if(pos != std::string::npos){
-            dir_target = p.path().string() + dir_target;
-            file_point.open(dir_target);
-            fileDate.file_path = dir_target;
+            name_file_target = p.path().string() + name_file_target;
+            file_point.open(name_file_target);
+            info.file_path = name_file_target;
+            file_finde = true;
             break; 
         }
     }
-    if (!file_point.is_open()){
-            throw L"File not found";
+    if(!file_finde){
+        throw file_is_not_found;
+    }else if (!file_point.is_open()){
+        throw file_is_not_open;
     }
-    std::string search_begin = "function d(e){return Object.assign({},h,e)}";
-                            //    "function p(e){return Object.assign({},h,e)}"
-    
+
     int pos_len = 0;
     for (std::string line; getline(file_point, line);){
-        std::size_t pos = line.find(search_begin);
+        std::size_t pos = line.find(search_begin[selected_number]);
         if(pos != std::string::npos){
-            pos_len += pos + search_begin.size()+1;// +1 это - Сместить на f от }
-            fileDate.pos_begin = pos_len;
+            pos_len += pos + search_begin[selected_number].size();// +1 это - Сместить на f от }
+            info.pos_begin = pos_len;
             std::string name_searching_str = "function";
-            std::size_t pos_end = line.find(name_searching_str, pos + search_begin.size()+name_searching_str.size());
+            std::size_t pos_end = line.find(name_searching_str, pos + search_begin[selected_number].size()+name_searching_str.size());
             if(pos_end != std::string::npos){
-                fileDate.pos_end = pos_len + (pos_end-(pos + search_begin.size()));
+                info.pos_end = pos_len + (pos_end-(pos + search_begin[selected_number].size()));
                 break;
             }
         }else{
+            // Так как в Linux новая строка обозначается \n а в Windows \r\n при работе со строками в системе Win надо увеличить размер строки на 1 символ
             pos_len += line.size();
+            #ifdef WIN32
+                pos_len +=1;
+            #endif // WIN32
         }
     }
     file_point.close();
-    return fileDate;
+    info.selected_number = selected_number;
+    return info;
 }
 
-GetFileTarget::GetFileTarget(){
-    tmp_file_name = "tmp_file.tmp";
-    
-}
+
 
 void GetFileTarget::setMode(){
     #ifdef WIN32
@@ -89,7 +161,7 @@ void GetFileTarget::setMode(){
         _setmode(_fileno(stderr), _O_U16TEXT);
         auto const & sz_message
         {
-            L" __________________________________________\n"
+            L" __________________________________________ \n"
             L"|                                          |\n"
             L"|   ╭━━━━┳━━━┳╮╱╱╭━━━┳━━━┳━━━┳╮╱╭┳━╮╭━╮    |\n"
             L"|   ┃╭╮╭╮┃╭━╮┃┃╱╱┃╭━╮┃╭━━┻╮╭╮┃┃╱┃┃┃╰╯┃┃    |\n"
@@ -121,7 +193,7 @@ void GetFileTarget::setMode(){
         std::wcout << sz_message << std::endl;
     #else
         auto const &sz_message{
-            " __________________________________________\n"
+            " __________________________________________ \n"
             "|                                          |\n"
             "|   ╭━━━━┳━━━┳╮╱╱╭━━━┳━━━┳━━━┳╮╱╭┳━╮╭━╮    |\n"
             "|   ┃╭╮╭╮┃╭━╮┃┃╱╱┃╭━╮┃╭━━┻╮╭╮┃┃╱┃┃┃╰╯┃┃    |\n"

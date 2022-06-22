@@ -1,6 +1,6 @@
-# CXX		  := i686-w64-mingw32-g++
-# CXX         := x86_64-w64-mingw32-g++
-CXX		  := g++
+# CXX		  := i686-w64-mingw32-g++ #Для Windowd 32bit
+# CXX         := x86_64-w64-mingw32-g++ #Для Windowd 64bit
+CXX		  := g++ # Для Linux
 CXX_FLAGS := -Wall -Wextra -std=c++17 -ggdb
 
 BIN		:= bin
@@ -8,13 +8,18 @@ SRC		:= src
 INCLUDE	:= include
 LIB		:= lib 
 
-# DEFINE  := WIN32=WIN32
-DEFINE  := LINUX=LINUX
+ifeq ($(CXX),x86_64-w64-mingw32-g++)
+   DEFINE       := WIN32=WIN32
+   EXECUTABLE	:= sftp_pat.exe
+else ifeq ($(CXX),i686-w64-mingw32-g++)
+   DEFINE       := WIN32=WIN32
+   EXECUTABLE	:= sftp_pat.exe
+else ifeq ($(CXX),g++)
+   DEFINE       := LINUX=LINUX
+   EXECUTABLE	:= sftp_patch
+endif
 
-LIBRARIES	:=  -lstdc++fs 
-
-# EXECUTABLE	:= sftp_pat.exe
-EXECUTABLE	:= sftp_pat
+LIBRARIES	:=  -static-libstdc++ -static-libgcc -lstdc++fs 
 
 all: $(BIN)/$(EXECUTABLE)
 

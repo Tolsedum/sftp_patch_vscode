@@ -17,14 +17,28 @@
 
 class FileRewrite{
 private:
-    FileDate fileDate;
+    GenerelInformation info;
     std::string str_to_insert;
+    std::vector<std::string> function_variant;
+    #ifdef WIN32
+        const wchar_t *remove_file_failed;
+        const wchar_t *file_patched;
+        const wchar_t *say_goodby;
+        const wchar_t *ask_user_a_path;
+    #else
+        const char *remove_file_failed ;
+        const char *file_patched;
+        const char *say_goodby;
+        const char *ask_user_a_path;
+    #endif // WIN32
 public:
-    FileRewrite(FileDate _fileData);
+    FileRewrite(GenerelInformation _fileData);
     /** Получить от пользователя путь к новому месту хранения настроек*/
     void getSettingsPatch();
     /** Редактирование файла*/
     void rewrite();
+   
+    
 };
 
 #endif // !FILE_REWRITE

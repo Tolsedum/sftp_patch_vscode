@@ -1,42 +1,45 @@
-#include <iostream>
-#include "GetFileTarget.hpp"
-#include "FileRewrite.hpp"
-
 /**
  * @file main.cpp
  * @author Tolsedum (tolsedum@gmail.com)
  * @brief Entry point
- * @version 0.1
+ * @version 1.0
  * @date 2022-06-12
  * 
  * @copyright Copyright (c) 2022
  * 
  */ 
+#include "GetFileTarget.hpp"
+#include "FileRewrite.hpp"
 
-int main(int argc, char *argv[]) {
+
+
+int main() {
     try{
         GetFileTarget getFileTarget;
         // Определить пользователя и перейти к нему в home дирикторию
         getFileTarget.jumpToDirectory();
+        // Для Windows меняет 
         getFileTarget.setMode();
+        
         // Найти нужный файл для правки и найти место правки
-        FileDate fileDate = getFileTarget.getFilePosition();
+        GenerelInformation fileDate = getFileTarget.getFilePosition();
         FileRewrite fileRewrite(fileDate);
-        // Получить от пользователя путь к новому месту хранения настроек
+
+        // Получить от пользователя путь к новому месту хранения настроек и узнать какой плагин интересует пользователя
         fileRewrite.getSettingsPatch();
+
         // Внести изменения в файле
         fileRewrite.rewrite();
       
-    }catch(const wchar_t* error){
-        // std::wcout << error << std::endl;
+    }catch(const CHAR_TYPR* error){
         fn::printString(error);
-    }catch (std::wstring error) {
-        // std::wcout << error << std::endl << std::endl;
+    }catch (STR_TYPE error) {
         fn::printString(error);
-    }catch (const std::exception & e) {
-        // std::wcout << e.what() << std::endl;
-        fn::printString(e);
+    }catch(const fs::filesystem_error& e){
+        fn::printString(e.what());
+    }catch(std::exception & e) {
+        fn::printString(e.what());
     }
-    system("PAUSE");
+    fn::pause();
 	return 0;
-} 
+}
