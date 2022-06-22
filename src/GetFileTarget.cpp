@@ -1,9 +1,9 @@
 #include "GetFileTarget.hpp"
 
 GetFileTarget::GetFileTarget(){
-    tmp_file_name = "tmp_file.tmp";
+    this->tmp_file_name = "tmp_file.tmp";
     
-    use_plagin = {
+    this->use_plagin = {
         "natizyskunk.sftp",
         "liximomo.sftp",
         "doujinya.sftp-revived"
@@ -15,128 +15,137 @@ GetFileTarget::GetFileTarget(){
     };
     
     #ifdef WIN32
-        file_is_not_found = L"Файл не найден";
-        file_is_not_open = L"Файл не может быть открыт";
-        out_of_range = L"Число не должно быть больше 3 и меньше 1";
-        invalid_argument = L"Введите число: ";
-        ask_user_a_plagin = L"\
+        this->file_is_not_found = L"Файл не найден";
+        this->file_is_not_open = L"Файл не может быть открыт";
+        this->out_of_range = L"Число не должно быть больше 3 и меньше 1";
+        this->invalid_argument = L"Введите число: ";
+        this->ask_user_a_plagin = L"\
 Каким плагином вы пользуетесь: \n \
 1) natizyskunk.sftp \n \
 2) liximomo.sftp \n \
 3) doujinya.sftp-revived \n\
 Введите номер: ";
-        name_file_target = "\\\\dist\\\\extension.js";
-        profile_patch = ".vscode\\\\extensions";
+        this->name_file_target = "\\\\dist\\\\extension.js";
+        this->profile_patch = ".vscode\\\\extensions";
     #else
-        file_is_not_found = "Файл не найден";
-        file_is_not_open = "Файл не может быть открыт";
-        out_of_range = "Число не должно быть больше 3 и меньше 1";
-        invalid_argument = "Введите число: ";
-        ask_user_a_plagin = "\
+        this->file_is_not_found = "Файл не найден";
+        this->file_is_not_open = "Файл не может быть открыт";
+        this->out_of_range = "Число не должно быть больше 3 и меньше 1";
+        this->invalid_argument = "Введите число: ";
+        this->ask_user_a_plagin = "\
 Каким плагином вы пользуетесь: \n \
 1) natizyskunk.sftp \n \
 2) liximomo.sftp \n \
 3) doujinya.sftp-revived \n \
 Введите номер: ";
-        name_file_target = "/dist/extension.js";
-        profile_patch = ".vscode/extensions";
+        this->name_file_target = "/dist/extension.js";
+        this->profile_patch = ".vscode/extensions";
     #endif // WIN32
-    
-
-}
-
-void GetFileTarget::getIntCin(){
-    fn::printString(ask_user_a_plagin);
-    STR_TYPE tmp_str;
-    bool iter = true;
-    while (iter){
-        try{
-            fn::getLineCin(tmp_str);
-            selected_number = std::stoi(tmp_str);
-            if(selected_number == 1){
-                selected_number = 0;
-                iter = false;
-            }else if(selected_number == 2){
-                selected_number = 1;
-                iter = false;
-            }else if(selected_number == 3){
-                selected_number = 2;
-                iter = false;
-            }else{
-                fn::printString(out_of_range);
-            }
-        }catch(const std::invalid_argument &e){
-            fn::printString(invalid_argument);
-        }catch(const std::out_of_range &e){ 
-            fn::printString(out_of_range);
-        }
-    }
-    
 }
 
 void GetFileTarget::jumpToDirectory(){
     #ifdef WIN32
+        // Изменение кодировки в cmd на UTF-8
         system("chcp 65001");
-        std::string cmd = "dir %UserProfile% >> "+tmp_file_name;
+        std::string current_patch;
+        // Команда на сохранение списка файла и каталогов во временный файл tmp_file_name
+        std::string cmd = "dir %UserProfile% >> "+this->tmp_file_name;
+        // Выполнение заданной команды в cmd Windous
         system(cmd.c_str());
-        
-        std::ifstream tmp_file_point(tmp_file_name);
+        // Получить из временного файла путь к пользовательскому каталогу
+        std::ifstream tmp_file_point(this->tmp_file_name);
         if(tmp_file_point.is_open()){
             std::string search_str = " Directory of ";
             for(std::string line; getline(tmp_file_point, line);){
                 std::size_t pos = line.find(search_str);
                 if(pos != std::string::npos){
+                    // Убрать то что находится перед нужной информацией
                     current_patch = line.replace(0, search_str.size(), "");
+                    // Приводим в соответствие сам путь к директории. Должен выглядеть например вот так (C:\\Users\\user_himself)
                     current_patch = std::regex_replace(current_patch, std::regex("\\\\"), "\\\\");
                     break;
                 }
             }
             tmp_file_point.close();
-            if(remove(tmp_file_name.c_str()) != 0){
-                throw L"Remove tmp_file file failed";
+            if(remove(this->tmp_file_name.c_str()) != 0){
+                throw L"Удалить временный файл не удалось, удалите его сами.";
             }
         }else{
-            throw L"Tmp file is not excist";
+            throw L"Временный файл открыть не удалось";
         }
+        // Переход в домашнюю директорию пользователя
         _wchdir(fn::stringToWstring(current_patch).c_str());
     #else
+        // Переход в домашнюю директорию пользователя
         chdir(getenv("HOME"));
     #endif // WIN32
 }
 
+void GetFileTarget::getIntCin(){
+    fn::printString(this->ask_user_a_plagin);
+    my_stryng tmp_str;
+    bool iter = true;
+    while (iter){
+        try{
+            fn::getLineCin(tmp_str);
+            this->selected_number = std::stoi(tmp_str);
+            if(this->selected_number == 1){
+                this->selected_number = 0;
+                iter = false;
+            }else if(this->selected_number == 2){
+                this->selected_number = 1;
+                iter = false;
+            }else if(this->selected_number == 3){
+                this->selected_number = 2;
+                iter = false;
+            }else{
+                fn::printString(this->out_of_range);
+            }
+        }catch(const std::invalid_argument &e){
+            fn::printString(this->invalid_argument);
+        }catch(const std::out_of_range &e){ 
+            fn::printString(this->out_of_range);
+        }
+    }
+}
+
+
 GenerelInformation GetFileTarget::getFilePosition(){
-    getIntCin();
+    // Получить номер который соответствует выбранному плагину
+    this->getIntCin();
     std::ifstream file_point;
     GenerelInformation info;
     info.tmp_file_name = tmp_file_name;
 
     bool file_finde = false;
-    for (auto const& p : fs::directory_iterator(profile_patch)){
-        std::size_t pos = p.path().string().find(use_plagin[selected_number]);// "natizyskunk.sftp"
+    // Поиск подходящей директории плагина
+    for (auto const& p : fs::directory_iterator(this->profile_patch)){
+        std::size_t pos = p.path().string().find(this->use_plagin[this->selected_number]);
         if(pos != std::string::npos){
-            name_file_target = p.path().string() + name_file_target;
-            file_point.open(name_file_target);
-            info.file_path = name_file_target;
+            this->name_file_target = p.path().string() + this->name_file_target;
+            file_point.open(this->name_file_target);
+            info.file_path = this->name_file_target;
             file_finde = true;
             break; 
         }
     }
     if(!file_finde){
-        throw file_is_not_found;
+        throw this->file_is_not_found;
     }else if (!file_point.is_open()){
-        throw file_is_not_open;
+        throw this->file_is_not_open;
     }
 
     int pos_len = 0;
+    // Определение позиции в файле для его правки
     for (std::string line; getline(file_point, line);){
-        std::size_t pos = line.find(search_begin[selected_number]);
+        std::size_t pos = line.find(search_begin[this->selected_number]);
         if(pos != std::string::npos){
-            pos_len += pos + search_begin[selected_number].size();// +1 это - Сместить на f от }
+            pos_len += pos + search_begin[this->selected_number].size();
             info.pos_begin = pos_len;
             std::string name_searching_str = "function";
-            std::size_t pos_end = line.find(name_searching_str, pos + search_begin[selected_number].size()+name_searching_str.size());
+            std::size_t pos_end = line.find(name_searching_str, pos + search_begin[this->selected_number].size()+name_searching_str.size());
             if(pos_end != std::string::npos){
-                info.pos_end = pos_len + (pos_end-(pos + search_begin[selected_number].size()));
+                info.pos_end = pos_len + (pos_end-(pos + search_begin[this->selected_number].size()));
                 break;
             }
         }else{
@@ -148,7 +157,7 @@ GenerelInformation GetFileTarget::getFilePosition(){
         }
     }
     file_point.close();
-    info.selected_number = selected_number;
+    info.selected_number = this->selected_number;
     return info;
 }
 
@@ -156,9 +165,8 @@ GenerelInformation GetFileTarget::getFilePosition(){
 
 void GetFileTarget::setMode(){
     #ifdef WIN32
-        _setmode(_fileno(stdout), _O_U16TEXT);
-        _setmode(_fileno(stdin),  _O_U16TEXT);
-        _setmode(_fileno(stderr), _O_U16TEXT);
+        //  Задает режим преобразования файлов
+        if(_setmode(_fileno(stdout), _O_U16TEXT) < 0)throw L"Не удалось установить режим преобразования файла!";
         auto const & sz_message
         {
             L" __________________________________________ \n"
@@ -224,5 +232,4 @@ void GetFileTarget::setMode(){
         };
         std::cout << sz_message << std::endl;
     #endif // WIN32
-    
 }

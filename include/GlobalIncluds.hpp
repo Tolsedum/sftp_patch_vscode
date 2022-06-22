@@ -1,31 +1,3 @@
-#pragma once
-#ifndef GLOBAL_INCLUDE
-#define GLOBAL_INCLUDE "GLOBAL_INCLUDE"
-
-#ifdef _WIN32
-    #include <direct.h>
-    #include <fcntl.h>
-    #define STR_TYPE std::wstring
-    #define CHAR_TYPR wchar_t
-#else
-    #include "unistd.h"
-    #define STR_TYPE std::string
-    #define CHAR_TYPR char
-#endif
-
-
-// #include <ctime>
-// #include <algorithm>
-// #include <stdio.h>
-
-#include <regex>
-#include <iostream>
-#include <string>
-#include <string.h>
-#include <fstream>
-#include <experimental/filesystem>
-#include <vector>
-
 /**
  * @file GlobalIncluds.hpp
  * @author Tolsedum (tolsedum@gmail.com)
@@ -36,18 +8,43 @@
  * @copyright Copyright (c) 2022
  * 
  */
+#pragma once
+#ifndef GLOBAL_INCLUDE
+#define GLOBAL_INCLUDE "GLOBAL_INCLUDE"
+
+
+#include <regex>
+#include <iostream>
+#include <string>
+#include <string.h>
+#include <fstream>
+#include <experimental/filesystem>
+#include <vector>
+
+#ifdef WIN32
+    #include <direct.h>
+    #include <fcntl.h>
+    typedef wchar_t my_char;
+    typedef std::wstring my_stryng;
+#else
+    #include "unistd.h"
+    typedef std::string my_stryng;
+    typedef char my_char;
+#endif
+
 
 namespace fs = std::experimental::filesystem;
 
+// Структура для передачи данных от одного объекта другому
 struct GenerelInformation{
     public:
-    std::string tmp_file_name;
-    std::string file_path;
-    std::size_t pos_begin = 0;
-    std::size_t pos_end = 0;
-    short selected_number;
-    GenerelInformation(){};
-    ~GenerelInformation(){};
+        std::string tmp_file_name;
+        std::string file_path;
+        std::size_t pos_begin = 0;
+        std::size_t pos_end = 0;
+        short selected_number;
+        GenerelInformation(){};
+        ~GenerelInformation(){};
 };
 
 namespace fn{
@@ -64,7 +61,11 @@ namespace fn{
         }
     #endif // WIN32
     
+    
+    
+
     // ----------------------- getLineCin -----------------------
+    // Конвертация строк. Требуются только в Windows
     inline void getLineCin(std::wstring &in_str){
         std::wcin >> in_str;
     }
@@ -74,8 +75,7 @@ namespace fn{
     // ----------------------- getLineCin end -------------------
 
     // ----------------------- printString -----------------------
-
-
+    // Универсальный метод для вывода одного сообщения
     inline void printString(wchar_t str_to_print){
         std::wcout << str_to_print <<std::endl;
     }
@@ -108,7 +108,7 @@ namespace fn{
         #endif // WIN32
     }
     // ----------------------- printString end---------------------
-
+    // Пауза в конце программы
     inline void pause(){
         #ifdef WIN32
             system("PAUSE");
@@ -119,6 +119,4 @@ namespace fn{
         #endif // WIN32
     }
 }
-
-
 #endif // !GLOBAL_INCLUDE

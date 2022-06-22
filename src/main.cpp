@@ -18,7 +18,7 @@ int main() {
         GetFileTarget getFileTarget;
         // Определить пользователя и перейти к нему в home дирикторию
         getFileTarget.jumpToDirectory();
-        // Для Windows меняет 
+        // Для Windows задает режим преобразования файлов и выводит логотип. Для Linux выыодит логотип.
         getFileTarget.setMode();
         
         // Найти нужный файл для правки и найти место правки
@@ -31,9 +31,9 @@ int main() {
         // Внести изменения в файле
         fileRewrite.rewrite();
       
-    }catch(const CHAR_TYPR* error){
+    }catch(const my_char* error){
         fn::printString(error);
-    }catch (STR_TYPE error) {
+    }catch (my_stryng error) {
         fn::printString(error);
     }catch(const fs::filesystem_error& e){
         fn::printString(e.what());

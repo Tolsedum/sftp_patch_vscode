@@ -1,6 +1,9 @@
-# CXX		  := i686-w64-mingw32-g++ #Для Windowd 32bit
-# CXX         := x86_64-w64-mingw32-g++ #Для Windowd 64bit
-CXX		  := g++ # Для Linux
+#Для Windowd 32bit
+# CXX		  := i686-w64-mingw32-g++
+#Для Windowd 64bit
+# CXX         := x86_64-w64-mingw32-g++
+# Для Linux
+CXX		  := g++
 CXX_FLAGS := -Wall -Wextra -std=c++17 -ggdb
 
 BIN		:= bin
