@@ -8,7 +8,7 @@ GetFileTarget::GetFileTarget(){
         "liximomo.sftp",
         "doujinya.sftp-revived"
     };
-    search_begin = {
+    this->search_begin = {
         "function d(e){return Object.assign({},h,e)}", // for natizyskunk.sftp
         "function p(e){return Object.assign({},h,e)}", // for liximomo.sftp
         "function d(e){return Object.assign({},h,e)}"  // for doujinya.sftp-revived
@@ -138,14 +138,14 @@ GenerelInformation GetFileTarget::getFilePosition(){
     int pos_len = 0;
     // Определение позиции в файле для его правки
     for (std::string line; getline(file_point, line);){
-        std::size_t pos = line.find(search_begin[this->selected_number]);
+        std::size_t pos = line.find(this->search_begin[this->selected_number]);
         if(pos != std::string::npos){
-            pos_len += pos + search_begin[this->selected_number].size();
+            pos_len += pos + this->search_begin[this->selected_number].size();
             info.pos_begin = pos_len;
             std::string name_searching_str = "function";
-            std::size_t pos_end = line.find(name_searching_str, pos + search_begin[this->selected_number].size()+name_searching_str.size());
+            std::size_t pos_end = line.find(name_searching_str, pos + this->search_begin[this->selected_number].size()+name_searching_str.size());
             if(pos_end != std::string::npos){
-                info.pos_end = pos_len + (pos_end-(pos + search_begin[this->selected_number].size()));
+                info.pos_end = pos_len + (pos_end-(pos + this->search_begin[this->selected_number].size()));
                 break;
             }
         }else{

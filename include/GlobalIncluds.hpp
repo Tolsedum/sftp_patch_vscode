@@ -60,9 +60,6 @@ namespace fn{
             return ret_value;
         }
     #endif // WIN32
-    
-    
-    
 
     // ----------------------- getLineCin -----------------------
     // Конвертация строк. Требуются только в Windows
