@@ -33,7 +33,7 @@ private:
     /** @brief Спросить пользователя путь где хранить файл*/
     const my_char *ask_user_a_path;
 public:
-    FileRewrite(GenerelInformation &_fileData);
+    FileRewrite(GenerelInformation& info);
     /** Получить от пользователя путь к новому месту хранения настроек*/
     void getSettingsPatch();
     /** Редактирование файла*/

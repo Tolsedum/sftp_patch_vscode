@@ -26,7 +26,7 @@ private:
     std::vector<std::string> use_plagin;
     /** @brief Список строк для определения позиции начала правки*/
     std::vector<std::string> search_begin;
-    /** @brief Номер плагина из списка use_plagin. Соответствует итератору vecntor*/
+    /** @brief Номер плагина из списка use_plagin. Соответствует итератору vector*/
     short selected_number;
     /** @brief Предложение пользователю о выборе плагина*/
     const my_char *ask_user_a_plagin;

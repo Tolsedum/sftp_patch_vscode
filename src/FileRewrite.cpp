@@ -1,21 +1,21 @@
 #include "FileRewrite.hpp"
 
-FileRewrite::FileRewrite(GenerelInformation &_info){
-    this->info = _info;
+FileRewrite::FileRewrite(GenerelInformation &info){
+    this->info = info;
     #ifdef WIN32
-        this->remove_file_failed = L"Удаление файла не удалось, удалите его сами.";
-        this->file_patched = L"Файл изменён.";
-        this->say_goodby = L"Файл изменён. Наслаждайтесь!";
-        this->ask_user_a_path = L"Введите путь к месту хранения настроек: ";
+        remove_file_failed = L"Удаление файла не удалось, удалите его сами.";
+        file_patched = L"Файл изменён.";
+        say_goodby = L"Файл изменён. Наслаждайтесь!";
+        ask_user_a_path = L"Введите путь к месту хранения настроек: ";
         
     #else
-        this->remove_file_failed = "Удаление файла не удалось, удалите его сами.";
-        this->file_patched = "Файл изменён.";
-        this->say_goodby = "Файл изменён. Наслаждайтесь!";
-        this->ask_user_a_path = "Введите путь к месту хранения настроек: ";
+        remove_file_failed = "Удаление файла не удалось, удалите его сами.";
+        file_patched = "Файл изменён.";
+        say_goodby = "Файл изменён. Наслаждайтесь!";
+        ask_user_a_path = "Введите путь к месту хранения настроек: ";
         
     #endif // WIN32
-    this->function_variant = {
+    function_variant = {
         "function p(e){e='%s';return o.join(e,a.CONFIG_PATH)}",// for natizyskunk.sftp
         "function d(e){e='%s';return o.join(e,a.CONFIG_PATH)}", // for liximomo.sftp
         "function p(e){e='%s';return o.join(e,a.CONFIG_PATH)}" // for doujinya.sftp-revived
@@ -26,7 +26,7 @@ FileRewrite::FileRewrite(GenerelInformation &_info){
 void FileRewrite::getSettingsPatch(){
     my_stryng tmp_path_settings_file;
 
-    fn::printString(this->ask_user_a_path);
+    fn::printString(ask_user_a_path);
     // Получение от пользователя пути хранения настроек
     fn::getLineCin(tmp_path_settings_file);
     fn::printString(' ');
@@ -38,32 +38,32 @@ void FileRewrite::getSettingsPatch(){
         path_settings = tmp_path_settings_file;
     #endif // WIN32
     
-    this->str_to_insert = function_variant[this->info.selected_number];
+    str_to_insert = function_variant[info.selected_number];
     // Вставка пути в шаблон
-    this->str_to_insert = std::regex_replace(this->str_to_insert, std::regex("%s"), path_settings);
+    str_to_insert = std::regex_replace(str_to_insert, std::regex("%s"), path_settings);
 }
 
 void FileRewrite::rewrite(){
-    if(this->info.pos_begin > 0){
-        std::ifstream file_target(this->info.file_path, std::ios::in | std::ios::binary);
-        std::ofstream tmp_file(this->info.tmp_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
+    if(info.pos_begin > 0){
+        std::ifstream file_target(info.file_path, std::ios::in | std::ios::binary);
+        std::ofstream tmp_file(info.tmp_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
         bool is_opened = tmp_file.is_open() && file_target.is_open();
         
         if(is_opened){
             // Пмшем во временный файл данный из файла с кодом до позиции вставки
-            char *big_buffer = new char[this->info.pos_begin];
-            file_target.read(big_buffer, this->info.pos_begin);
-            tmp_file.write(big_buffer, this->info.pos_begin);
+            char *big_buffer = new char[info.pos_begin];
+            file_target.read(big_buffer, info.pos_begin);
+            tmp_file.write(big_buffer, info.pos_begin);
             delete[] big_buffer;
             // Вставляем во временный файл новую запись
-            tmp_file.write(this->str_to_insert.c_str(), this->str_to_insert.size());
+            tmp_file.write(str_to_insert.c_str(), str_to_insert.size());
             
             file_target.seekg(0, file_target.end);
             int size_buffer = file_target.tellg();
             // Определяем сколько надо пропустить
-            size_buffer -= this->info.pos_begin+(this->info.pos_end-this->info.pos_begin);
+            size_buffer -= info.pos_begin+(info.pos_end-info.pos_begin);
             // Пропускаем старую запись
-            file_target.seekg(this->info.pos_end);
+            file_target.seekg(info.pos_end);
             // Записываем всё что осталось
             char *buffer = new char[size_buffer];
             file_target.read(buffer, size_buffer);
@@ -73,19 +73,19 @@ void FileRewrite::rewrite(){
         file_target.close();
         tmp_file.close();
         if(is_opened){
-            std::ifstream tmp_file_if(this->info.tmp_file_name, std::ios::in | std::ios::binary);
-            std::ofstream file_target_in(this->info.file_path.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
+            std::ifstream tmp_file_if(info.tmp_file_name, std::ios::in | std::ios::binary);
+            std::ofstream file_target_in(info.file_path.c_str(), std::ios::out | std::ios::binary | std::ios::trunc);
             // Переносим содержимое из временного файла в оригинальный
             file_target_in << tmp_file_if.rdbuf();
             tmp_file_if.close();
             file_target_in.close();
             // Удаляем временный файл
-            if (remove(this->info.tmp_file_name.c_str()) != 0) {
-                throw this->remove_file_failed;
+            if (remove(info.tmp_file_name.c_str()) != 0) {
+                throw remove_file_failed;
             }else{
-                fn::printString(this->file_patched);
+                fn::printString(file_patched);
             }
         }
-        fn::printString(this->say_goodby);
+        fn::printString(say_goodby);
     }
 }
