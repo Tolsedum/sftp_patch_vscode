@@ -66,13 +66,9 @@ GetFileTarget::GetFileTarget(){
         fn::printString(ask_user_a_path);
         // Получение от пользователя пути хранения настроек
         fn::getLineCin(tmp_path_settings_file);
-        
-        // std::getline(std::cin, path_settings);
-
         fn::printString(' ');
         #ifdef WIN32
             path_settings = fn::wstringToString(tmp_path_settings_file);
-            // path_settings = fn::replaceSlash(fn::wstringToString(tmp_path_settings_file));
             path_settings = std::regex_replace(path_settings, std::regex("\\\\"), "\\\\");
         #else
             path_settings = tmp_path_settings_file;
@@ -96,8 +92,6 @@ GetFileTarget::GetFileTarget(){
         }
         settings_file.close();
     }
-    
-    // fn::printString(path_settings);
 }
 
 

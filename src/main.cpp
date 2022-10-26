@@ -11,8 +11,6 @@
 #include "GetFileTarget.hpp"
 #include "FileRewrite.hpp"
 
-
-
 int main(){
     try{
         GetFileTarget getFileTarget;
@@ -22,7 +20,6 @@ int main(){
         getFileTarget.setMode();
         // Найти нужный файл для правки и найти место правки
         std::vector<GeneralInformation> fileDate = getFileTarget.getFilePosition();
-   
         
         for(auto info : fileDate){
             FileRewrite fileRewrite(info);
@@ -32,7 +29,6 @@ int main(){
             // Внести изменения в файле
             fileRewrite.rewrite();
         }
-        
       
     }catch(const my_char* error){
         fn::printString(error);
