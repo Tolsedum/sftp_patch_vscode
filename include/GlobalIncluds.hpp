@@ -36,15 +36,20 @@
 namespace fs = std::experimental::filesystem;
 
 // Структура для передачи данных от одного объекта другому
-struct GenerelInformation{
+struct GeneralInformation{
     public:
-        std::string tmp_file_name;
-        std::string file_path;
+        std::string tmp_file_name = "";
+        std::string file_path = "";
         std::size_t pos_begin = 0;
         std::size_t pos_end = 0;
         short selected_number;
-        GenerelInformation(){};
-        ~GenerelInformation(){};
+        GeneralInformation(){};
+        ~GeneralInformation(){};
+
+        friend std::ostream& operator <<(std::ostream& os, const GeneralInformation &data){
+            os << "tmp_file_name "<< data.tmp_file_name<< " file_path "<< data.file_path << " pos_begin " << data.pos_begin << " pos_end " << data.pos_end << " selected_number " << data.selected_number;
+            return os;
+        }
 };
 
 namespace fn{
@@ -60,6 +65,18 @@ namespace fn{
             return ret_value;
         }
     #endif // WIN32
+
+
+    // convert UTF-8 string to wstring
+    inline std::wstring utf8_to_wstring (const std::string& str) {
+        return std::wstring(str.begin(), str.end());
+    }
+
+    // convert wstring to UTF-8 string
+    inline std::string wstring_to_utf8 (const std::wstring& str) {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+        return myconv.to_bytes(str);
+    }
 
     // ----------------------- getLineCin -----------------------
     // Конвертация строк. Требуются только в Windows
@@ -92,10 +109,18 @@ namespace fn{
         std::cout << str_to_print <<std::endl;
     }
     inline void printString(std::wstring str_to_print){
-        std::wcout << str_to_print <<std::endl;
+        #ifdef WIN32
+            std::wcout << str_to_print <<std::endl;
+        #else
+            std::cout << wstring_to_utf8(str_to_print) <<std::endl;
+        #endif // WIN32
     }
     inline void printString(std::string str_to_print){
-        std::cout << str_to_print <<std::endl;
+        #ifdef WIN32
+            std::wcout << stringToWstring(str_to_print) <<std::endl;
+        #else
+            std::cout << str_to_print <<std::endl;
+        #endif // WIN32
     }
     inline void printString(std::exception except){
         #ifdef WIN32
@@ -114,6 +139,46 @@ namespace fn{
             char d;
             std::cin >> d;
         #endif // WIN32
+    }
+
+    inline std::string getResultFromCmd(std::string cmd){
+        std::string data;
+        FILE *stream;
+        const int max_buffer = 1024;
+        char buffer[max_buffer];
+
+        stream = popen(cmd.c_str(), "r");
+
+        if (stream){
+            while (!feof(stream)){
+                if (fgets(buffer, max_buffer, stream) != NULL){
+                    data.append(buffer);
+                }
+            }
+            pclose(stream);
+        }
+        return data;
+    }
+
+    inline std::string replaceSlash(std::string str){
+        std::string result;
+        std::string slash;
+        char last;
+        for(auto var : str){
+            if(var == '\\'){
+                slash.append(1, var);
+                if(slash == "\\\\"){
+                    slash = "";
+                    continue;
+                }
+                if(last == '\\'){
+                    continue;
+                }
+            }
+            last = var;
+            result.append(1, var);
+        }
+        return result;
     }
 }
 #endif // !GLOBAL_INCLUDE

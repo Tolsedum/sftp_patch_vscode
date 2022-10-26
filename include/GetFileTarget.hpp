@@ -22,11 +22,13 @@ private:
     std::string name_file_target;
     /** @brief Имя временного файла для сохранения в него информации*/
     std::string tmp_file_name;
+    /** @brief Путь к настройкам sftp*/
+    std::string path_settings;
     /** @brief Список плагинов в которых изменить путь*/
-    std::vector<std::string> use_plagin;
+    std::vector<std::string> use_plugin;
     /** @brief Список строк для определения позиции начала правки*/
-    std::vector<std::string> search_begin;
-    /** @brief Номер плагина из списка use_plagin. Соответствует итератору vector*/
+    std::vector<std::vector<std::string>> search_begin;
+    /** @brief Номер плагина из списка use_plugin. Соответствует итератору vector*/
     short selected_number;
     /** @brief Предложение пользователю о выборе плагина*/
     const my_char *ask_user_a_plagin;
@@ -46,9 +48,10 @@ public:
     /** Определить пользователя и перейти к нему в home дирикторию*/
     void jumpToDirectory();
     /** Найти нужный файл для правки и найти место правки*/
-    GenerelInformation getFilePosition();
+    std::vector<GeneralInformation> getFilePosition();
     // Для Windows задает режим преобразования файлов и выводит логотип. Для Linux выыодит логотип.
     void setMode();
-    
+    /** @brief Вернуть путь к настройкам*/
+    std::string getPathSettings();
 };
 #endif // !GET_FILE_TARGET

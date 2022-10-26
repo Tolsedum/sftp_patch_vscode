@@ -19,7 +19,7 @@
 class FileRewrite{
 private:
     /** @brief Информация о файле*/
-    GenerelInformation info;
+    GeneralInformation info;
     /** @brief Строка с готовым js кодом*/
     std::string str_to_insert;
     /** @brief Варианты заготовок с js кодом для разных плагинов*/
@@ -31,15 +31,13 @@ private:
     /** @brief Прощание с пользователем*/
     const my_char *say_goodby;
     /** @brief Спросить пользователя путь где хранить файл*/
-    const my_char *ask_user_a_path;
+    // const my_char *ask_user_a_path;
 public:
-    FileRewrite(GenerelInformation& info);
+    FileRewrite(GeneralInformation& info);
     /** Получить от пользователя путь к новому месту хранения настроек*/
-    void getSettingsPatch();
+    void getSettingsPatch(std::string path_settings);
     /** Редактирование файла*/
     void rewrite();
-   
-    
 };
 
 #endif // !FILE_REWRITE
