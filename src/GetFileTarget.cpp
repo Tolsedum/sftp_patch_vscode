@@ -11,19 +11,20 @@ GetFileTarget::GetFileTarget(){
     search_begin = {
         {
             "function d(e){return Object.assign({},h,e)}", 
-            "function d(e){return Object.assign(Object.assign({},h),e)}"
+            "function d(e){return Object.assign(Object.assign({},h),e)};"
         }, // for natizyskunk.sftp
         {
             "function p(e){return Object.assign({},h,e)}",
-            "function d(e){return Object.assign(Object.assign({},h),e)}"
+            "function d(e){return Object.assign(Object.assign({},h),e)};"
         }, // for liximomo.sftp
         {
             "function d(e){return Object.assign({},h,e)}",
-            "function d(e){return Object.assign(Object.assign({},h),e)}"
+            "function d(e){return Object.assign(Object.assign({},h),e)};"
         }// for doujinya.sftp-revived
     };
     
     #ifdef WIN32
+        user_name_is_not_find = L"Имя пользователя не найдено";
         file_is_not_found = L"Файл не найден";
         file_is_not_open = L"Файл не может быть открыт";
         out_of_range = L"Число не должно быть больше 3 и меньше 1";
@@ -36,7 +37,11 @@ GetFileTarget::GetFileTarget(){
 Введите номер: ";
         name_file_target = "\\\\dist\\\\extension.js";
         profile_patch = ".vscode\\\\extensions";
+
+        name_file = fn::wstringToString(fs::current_path());
+        name_file.append("\\settings_file.conf");
     #else
+        user_name_is_not_find = "Имя пользователя не найдено";
         file_is_not_found = "Файл не найден";
         file_is_not_open = "Файл не может быть открыт";
         out_of_range = "Число не должно быть больше 3 и меньше 1";
@@ -49,58 +54,100 @@ GetFileTarget::GetFileTarget(){
 Введите номер: ";
         name_file_target = "/dist/extension.js";
         profile_patch = ".vscode/extensions";
+
+        name_file = fs::current_path();
+        name_file.append("/settings_file.conf");
     #endif // WIN32
-
-    std::string name_file = "settings_file.conf";
-    if(!fs::is_regular_file(name_file)){
-        const my_char *ask_user_a_path;
-        std::string path_settings;
-        #ifdef WIN32
-            ask_user_a_path = L"Введите путь к месту хранения настроек: ";
-        #else
-            ask_user_a_path = "Введите путь к месту хранения настроек: ";
-        #endif // WIN32
-        
-        my_stryng tmp_path_settings_file;
-
-        fn::printString(ask_user_a_path);
-        // Получение от пользователя пути хранения настроек
-        fn::getLineCin(tmp_path_settings_file);
-        fn::printString(' ');
-        #ifdef WIN32
-            path_settings = fn::wstringToString(tmp_path_settings_file);
-            path_settings = std::regex_replace(path_settings, std::regex("\\\\"), "\\\\");
-        #else
-            path_settings = tmp_path_settings_file;
-        #endif // WIN32
-
-        std::ofstream settings_file(name_file);
-        settings_file<< "PATCH="+path_settings;
-        settings_file.close();
-    }else{
-        std::ifstream settings_file(name_file);
-        std::string anchor = "PATCH=";
-        for(std::string line; getline(settings_file, line);){
-            std::size_t pos = line.find(anchor)+anchor.size();
-            if(std::string::npos != pos){
-                for(std::size_t i = pos; i < line.size(); i++){
-                    if(line[i] != ' '){
-                        path_settings.append(1, line[i]);
-                    }
-                }
-            }
-        }
-        settings_file.close();
-    }
+    
+    
 }
 
+void GetFileTarget::setPath(){
+    std::string user_name;
+    #ifdef WIN32
+        for (int i = current_patch.size(); i > 0; i--){
+            if(current_patch[i] == '/' || current_patch[i] == '\\'){
+                break;
+            }
+            user_name = current_patch[i] + user_name;
+        }
+    #else
+        user_name = current_patch;
+    #endif // WIN32
 
+    if(!user_name.empty()){
+        
+        bool get_file_patch = false;
+        bool find = false;
+        if(!fs::is_regular_file(name_file)){
+            get_file_patch = true;
+        }else{
+            std::ifstream settings_file(name_file);
+            std::string anchor = user_name+"=";
+
+            for(std::string line; getline(settings_file, line);){
+                std::size_t pos = line.find(anchor);
+                std::size_t pos_equals = line.find('=');
+                
+                if(std::string::npos != pos && std::string::npos != pos_equals && pos_equals > pos){
+                    pos += anchor.size();
+                    for(std::size_t i = pos; i < line.size(); i++){
+                        if(line[i] != ' '){
+                            path_settings.append(1, line[i]);
+                        }
+                    }
+                    find = true;
+                }
+            }
+            if(!find){
+                get_file_patch = true;
+            }
+            settings_file.close();
+        }
+
+        if(get_file_patch){
+            const my_char *ask_user_a_path;
+            
+            #ifdef WIN32
+                ask_user_a_path = L"Введите путь к месту хранения настроек: ";
+            #else
+                ask_user_a_path = "Введите путь к месту хранения настроек: ";
+            #endif // WIN32
+            
+            my_stryng tmp_path_settings_file;
+
+            fn::printString(ask_user_a_path);
+            // Получение от пользователя пути хранения настроек
+            fn::getLineCin(tmp_path_settings_file);
+            fn::printString(' ');
+
+            #ifdef WIN32
+                path_settings = fn::wstringToString(tmp_path_settings_file);
+                path_settings = std::regex_replace(path_settings, std::regex("\\\\"), "\\\\");
+            #else
+                path_settings = tmp_path_settings_file;
+            #endif // WIN32
+            
+            std::ofstream out_settings_file(name_file, std::ofstream::app);
+            if(out_settings_file.is_open()){
+                out_settings_file.write(user_name.c_str(), user_name.size());
+                out_settings_file.write("=", 1);
+                out_settings_file.write(path_settings.c_str(), path_settings.size());
+                out_settings_file.write("\n", 1);
+            }else{
+                throw file_is_not_open;
+            }
+            out_settings_file.close();
+        }
+    }else{
+        throw user_name_is_not_find;
+    }
+}
 
 void GetFileTarget::jumpToDirectory(){
     #ifdef WIN32
         // Изменение кодировки в cmd на UTF-8
         system("chcp 65001");
-        std::string current_patch;
         // Команда на сохранение списка файла и каталогов во временный файл tmp_file_name
         std::string cmd = "dir %UserProfile% >> "+tmp_file_name;
         // Выполнение заданной команды в cmd Windous
@@ -131,6 +178,12 @@ void GetFileTarget::jumpToDirectory(){
     #else
         // Переход в домашнюю директорию пользователя
         chdir(getenv("HOME"));
+
+        uid_t uid = geteuid();
+        struct passwd *pw = getpwuid(uid);
+        if (pw){
+            current_patch = pw->pw_name;
+        }
     #endif // WIN32
 }
 
@@ -181,24 +234,24 @@ std::vector<GeneralInformation> GetFileTarget::getFilePosition(){
                 bool found = false;
 
                 std::string search_method = "";
-                // Определение позиции в файле для его правки
-                for (std::string line; getline(file_point, line);){
-                    for(auto var : search_begin[selected_number]){
-                        std::size_t pos = line.find(var);
-                        if(pos != std::string::npos){
-                            search_method = var;
-                            found=true;
-                            break;
-                        }
-                    }
-                    if(found) break;
-                }
                 file_point.seekg(0, file_point.beg);
                 // Определение позиции в файле для его правки
+                std::size_t pos = std::string::npos;
                 for (std::string line; getline(file_point, line);){
-                    std::size_t pos = line.find(search_method);
+                    if(!found){
+                        for(auto var : search_begin[selected_number]){
+                            pos = line.find(var);
+                            if(pos != std::string::npos){
+                                search_method = var;
+                                found=true;
+                                break;
+                            }
+                        }
+                    }
+
+                    
                     if(pos != std::string::npos){
-                        pos_len += pos + search_method.size();
+                        pos_len += pos + search_method.size()+1;
                         info.pos_begin = pos_len;
                         std::string name_searching_str = "function";
                         std::size_t pos_end = line.find(name_searching_str, pos + search_method.size()+name_searching_str.size());
@@ -228,13 +281,8 @@ std::vector<GeneralInformation> GetFileTarget::getFilePosition(){
     if(!file_find){
         throw file_is_not_found;
     }
-
-    
-    
-    
     return v_info;
 }
-
 
 
 void GetFileTarget::setMode(){

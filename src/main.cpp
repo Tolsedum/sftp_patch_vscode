@@ -18,6 +18,7 @@ int main(){
         getFileTarget.jumpToDirectory();
         // Для Windows задает режим преобразования файлов и выводит логотип. Для Linux выыодит логотип.
         getFileTarget.setMode();
+        getFileTarget.setPath();
         // Найти нужный файл для правки и найти место правки
         std::vector<GeneralInformation> fileDate = getFileTarget.getFilePosition();
         

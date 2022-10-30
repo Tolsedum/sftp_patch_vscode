@@ -27,6 +27,9 @@
     typedef wchar_t my_char;
     typedef std::wstring my_stryng;
 #else
+    #include <pwd.h>
+    #include <stdio.h>
+    #include <stdlib.h>
     #include "unistd.h"
     typedef std::string my_stryng;
     typedef char my_char;
