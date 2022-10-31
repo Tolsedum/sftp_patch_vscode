@@ -26,12 +26,18 @@ private:
     std::string path_settings;
     /** @brief Имя файла с настройками программы*/
     std::string name_file;
+    /** @brief Путь к домашней папки*/
+    std::string current_patch;
+    /** @brief Имя текущего пользователя*/
+    std::string user_name;
     /** @brief Список плагинов в которых изменить путь*/
     std::vector<std::string> use_plugin;
     /** @brief Список строк для определения позиции начала правки*/
     std::vector<std::vector<std::string>> search_begin;
     /** @brief Номер плагина из списка use_plugin. Соответствует итератору vector*/
     short selected_number;
+    /** @brief Предложение пользователю о пути места хранения настроек*/
+    const my_char *ask_user_a_path;
     /** @brief Предложение пользователю о выборе плагина*/
     const my_char *ask_user_a_plagin;
     /** @brief Сообщение о том что надо ввести число*/
@@ -48,14 +54,14 @@ private:
     const my_char *user_name_is_not_find;
     /** @brief Путь к каталогу с файлом*/
     const char *profile_patch;
-    /** @brief Путь к домашней папки*/
-    std::string current_patch;
+    
+
     /** @brief Файл с настройками*/
     std::ofstream out_settings_file;
     std::ifstream settings_file;
 
-
-    
+    /** @brief Прочитать файл с настройками*/
+    bool readSettingsFile();
     void getIntCin();
 public:
     GetFileTarget();

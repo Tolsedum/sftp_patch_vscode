@@ -29,6 +29,7 @@ GetFileTarget::GetFileTarget(){
         file_is_not_open = L"Файл не может быть открыт";
         out_of_range = L"Число не должно быть больше 3 и меньше 1";
         invalid_argument = L"Введите число: ";
+        ask_user_a_path = L"Введите путь к месту хранения настроек: ";
         ask_user_a_plagin = L"\
 Каким плагином вы пользуетесь: \n \
 1) natizyskunk.sftp \n \
@@ -38,14 +39,15 @@ GetFileTarget::GetFileTarget(){
         name_file_target = "\\\\dist\\\\extension.js";
         profile_patch = ".vscode\\\\extensions";
 
-        name_file = fn::wstringToString(fs::current_path());
-        name_file.append("\\settings_file.conf");
+        // name_file = fn::wstringToString(fs::current_path());
+        name_file.append("settings_file.conf");
     #else
         user_name_is_not_find = "Имя пользователя не найдено";
         file_is_not_found = "Файл не найден";
         file_is_not_open = "Файл не может быть открыт";
         out_of_range = "Число не должно быть больше 3 и меньше 1";
         invalid_argument = "Введите число: ";
+        ask_user_a_path = "Введите путь к месту хранения настроек: ";
         ask_user_a_plagin = "\
 Каким плагином вы пользуетесь: \n \
 1) natizyskunk.sftp \n \
@@ -62,57 +64,35 @@ GetFileTarget::GetFileTarget(){
     
 }
 
-void GetFileTarget::setPath(){
-    std::string user_name;
-    #ifdef WIN32
-        for (int i = current_patch.size(); i > 0; i--){
-            if(current_patch[i] == '/' || current_patch[i] == '\\'){
-                break;
-            }
-            user_name = current_patch[i] + user_name;
-        }
-    #else
-        user_name = current_patch;
-    #endif // WIN32
+bool GetFileTarget::readSettingsFile(){
+    bool file_exists = false;
 
-    if(!user_name.empty()){
-        
-        bool get_file_patch = false;
-        bool find = false;
-        if(!fs::is_regular_file(name_file)){
-            get_file_patch = true;
-        }else{
-            std::ifstream settings_file(name_file);
-            std::string anchor = user_name+"=";
+    if(fs::is_regular_file(name_file)){
+        file_exists = true;
+        std::ifstream settings_file(name_file);
+        std::string anchor = user_name+"=";
 
-            for(std::string line; getline(settings_file, line);){
-                std::size_t pos = line.find(anchor);
-                std::size_t pos_equals = line.find('=');
-                
-                if(std::string::npos != pos && std::string::npos != pos_equals && pos_equals > pos){
-                    pos += anchor.size();
-                    for(std::size_t i = pos; i < line.size(); i++){
-                        if(line[i] != ' '){
-                            path_settings.append(1, line[i]);
-                        }
+        for(std::string line; getline(settings_file, line);){
+            std::size_t pos = line.find(anchor);
+            std::size_t pos_equals = line.find('=');
+            
+            if(std::string::npos != pos && std::string::npos != pos_equals && pos_equals > pos){
+                pos += anchor.size();
+                for(std::size_t i = pos; i < line.size(); i++){
+                    if(line[i] != ' '){
+                        path_settings.append(1, line[i]);
                     }
-                    find = true;
                 }
             }
-            if(!find){
-                get_file_patch = true;
-            }
-            settings_file.close();
         }
+        settings_file.close();
+    }
+    return file_exists;
+}
 
-        if(get_file_patch){
-            const my_char *ask_user_a_path;
-            
-            #ifdef WIN32
-                ask_user_a_path = L"Введите путь к месту хранения настроек: ";
-            #else
-                ask_user_a_path = "Введите путь к месту хранения настроек: ";
-            #endif // WIN32
+void GetFileTarget::setPath(){
+    if(!user_name.empty()){
+        if(path_settings.empty()){
             
             my_stryng tmp_path_settings_file;
 
@@ -146,6 +126,13 @@ void GetFileTarget::setPath(){
 
 void GetFileTarget::jumpToDirectory(){
     #ifdef WIN32
+        if(!fs::is_regular_file("settings_file.conf")){
+            std::cout<< "Введите путь к настройкам в файл: settings_file.conf"<< std::endl;
+            std::ofstream out_settings_file("settings_file.conf");
+            out_settings_file.close();
+            fn::pause();
+            exit(0);
+        }
         // Изменение кодировки в cmd на UTF-8
         system("chcp 65001");
         // Команда на сохранение списка файла и каталогов во временный файл tmp_file_name
@@ -173,18 +160,34 @@ void GetFileTarget::jumpToDirectory(){
         }else{
             throw L"Временный файл открыть не удалось";
         }
+
+        for (int i = current_patch.size()-1; i > 0; i--){
+            if(current_patch[i] == '/' || current_patch[i] == '\\'){
+                break;
+            }else if(current_patch[i] != ' '){
+                user_name = current_patch[i] + user_name;
+            }
+        }
+        readSettingsFile();
         // Переход в домашнюю директорию пользователя
         _wchdir(fn::stringToWstring(current_patch).c_str());
-    #else
-        // Переход в домашнюю директорию пользователя
-        chdir(getenv("HOME"));
 
+        
+    #else
         uid_t uid = geteuid();
         struct passwd *pw = getpwuid(uid);
         if (pw){
             current_patch = pw->pw_name;
         }
+        user_name = current_patch;
+
+        readSettingsFile();
+        // Переход в домашнюю директорию пользователя
+        chdir(getenv("HOME"));
+
+        
     #endif // WIN32
+    
 }
 
 void GetFileTarget::getIntCin(){
